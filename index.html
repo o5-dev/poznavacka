@@ -1,71 +1,191 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="cs" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Poznávačka – výtvarná výchova</title>
+<script>
+// motiv se nastaví před prvním vykreslením, aby nebliklo
+(function(){try{var p=localStorage.getItem('poznavacka-theme')||'system';
+var d=p==='dark'||(p==='system'&&!matchMedia('(prefers-color-scheme: light)').matches);
+document.documentElement.setAttribute('data-theme',d?'dark':'light');}catch(e){}})();
+</script>
 <style>
-:root{--bg:#f4efe6;--card:#fffdf8;--ink:#2a2420;--muted:#7a6f64;--accent:#9c4a2f;--accent2:#c9743f;--ok:#2e7d4f;--okbg:#e3f3e9;--bad:#b3362c;--badbg:#f9e4e1;--warn:#b7791f;--warnbg:#fbf0d9;--line:#e2d8c8}
+/* Poznávačka: klidná provozní deska. Neutrální tmavý základ, hairline linky, černobílá + stavové barvy. */
+:root{
+  --font:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"Cascadia Mono","SF Mono",Consolas,Menlo,monospace;
+  --bg:#0b0c0d;--surface:#131415;--surface-2:#1a1b1d;--surface-3:#232426;
+  --line:#26272a;--line-2:#36383c;
+  --text:#ececed;--text-2:#b0b2b6;--text-3:#8a8d93;
+  --accent:#f2f2f3;--accent-fg:#0b0c0d;--accent-weak:rgb(255 255 255/.1);
+  --good:#4cc38a;--warn:#f0a23b;--bad:#f47474;--info:#6fa8ff;
+  --good-weak:rgb(76 195 138/.15);--warn-weak:rgb(240 162 59/.14);--bad-weak:rgb(244 116 116/.14);
+  --shadow:0 12px 36px rgb(0 0 0/.55);
+  --r:12px;--r-sm:10px;--rail:236px;--top:52px;
+  --ease:cubic-bezier(.22,1,.36,1);color-scheme:dark;
+}
+:root[data-theme=light]{
+  --bg:#f3f4f5;--surface:#fff;--surface-2:#f6f7f8;--surface-3:#eceeef;
+  --line:#e1e3e5;--line-2:#cfd2d5;
+  --text:#141517;--text-2:#484b50;--text-3:#62666c;
+  --accent:#17181a;--accent-fg:#fff;--accent-weak:rgb(20 21 23/.08);
+  --good:#1b7f4f;--warn:#a8610a;--bad:#c23b3b;--info:#1f5fbf;
+  --good-weak:rgb(27 127 79/.11);--warn-weak:rgb(168 97 10/.1);--bad-weak:rgb(194 59 59/.09);
+  --shadow:0 12px 32px rgb(20 21 23/.14);color-scheme:light;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Georgia,"Times New Roman",serif;min-height:100vh}
-.wrap{max-width:760px;margin:0 auto;padding:16px 16px 48px}
-h1{font-size:1.7rem;margin:.4em 0 .1em;letter-spacing:.01em}
-h2{font-size:1.15rem;margin:0}
-.sub{color:var(--muted);margin:0 0 18px}
-button{font:inherit;cursor:pointer}
-.menu{display:grid;gap:12px}
-.mode{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--ink);transition:transform .08s,border-color .15s}
-.mode:hover{border-color:var(--accent2);transform:translateY(-1px)}
-.mode b{display:block;font-size:1.1rem;margin-bottom:2px}
-.mode span{color:var(--muted);font-size:.93rem}
-.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.back{background:none;border:0;color:var(--accent);padding:6px 0;font-size:.95rem}
-.score{color:var(--muted);font-size:.95rem;font-variant-numeric:tabular-nums}
-.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:14px}
-.bar i{display:block;height:100%;background:var(--accent2);width:0;transition:width .25s}
-.imgbox{background:#1e1a17;border-radius:14px;display:flex;align-items:center;justify-content:center;min-height:220px;max-height:58vh;overflow:hidden}
-.imgbox img{max-width:100%;max-height:58vh;display:block;object-fit:contain}
-.q{margin:14px 0 8px;font-size:1.05rem;color:var(--muted)}
-.given{font-size:1.35rem;font-weight:bold;margin:14px 0 4px}
-.opts{display:grid;gap:8px}
-.opt{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;color:var(--ink)}
-.opt:hover:not([disabled]){border-color:var(--accent2)}
-.opt.ok{background:var(--okbg);border-color:var(--ok)}
-.opt.bad{background:var(--badbg);border-color:var(--bad)}
-.opt[disabled]{cursor:default}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-@media(max-width:480px){.grid2{grid-template-columns:1fr}}
-.row{display:flex;gap:8px}
-input[type=text]{flex:1;font:inherit;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);min-width:0}
-input[type=text]:focus{outline:none;border-color:var(--accent2)}
-.btn{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:12px 18px}
-.btn.alt{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
-.btn.gray{background:#e9e1d3;color:var(--ink)}
-.fb{margin-top:12px;border-radius:12px;padding:12px 14px}
-.fb.ok{background:var(--okbg);border:1px solid var(--ok)}
-.fb.bad{background:var(--badbg);border:1px solid var(--bad)}
-.fb.warn{background:var(--warnbg);border:1px solid var(--warn)}
-.fb b{display:block}
-.fb small{display:block;color:var(--muted);margin-top:2px}
-.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;font-weight:650;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:1.5rem;line-height:1.2}h2{font-size:1.125rem}h3{font-size:.9375rem}
+p{margin:0}button{font:inherit;color:inherit}
+::selection{background:var(--accent);color:var(--accent-fg)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+*{scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.muted{color:var(--text-2)}.faint{color:var(--text-3)}.small{font-size:.8125rem}.num{font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;gap:.5rem}.row.wrap{flex-wrap:wrap}.sp{flex:1}.stack{display:flex;flex-direction:column;gap:.75rem}
+.icon{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.icon.sm{width:15px;height:15px}
 .hidden{display:none!important}
-.end{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;text-align:center}
-.end .big{font-size:2.4rem;font-weight:bold;color:var(--accent)}
-.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.gi{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;padding:0;text-align:left;color:var(--ink)}
-.gi img{width:100%;height:120px;object-fit:cover;display:block}
-.gi div{padding:6px 8px;font-size:.85rem}
-.gi em{display:block;color:var(--muted);font-style:normal;font-size:.78rem}
-.sel{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px}
-.chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:.9rem;color:var(--ink)}
-.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.modal{position:fixed;inset:0;background:rgba(20,15,10,.82);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
-.modal .in{background:var(--card);border-radius:14px;max-width:560px;width:100%;max-height:92vh;overflow:auto;padding:12px}
-.modal img{width:100%;border-radius:8px;display:block}
+
+/* shell */
+.app{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);min-height:100vh}
+.rail{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--line);padding:.75rem .6rem 1rem;display:flex;flex-direction:column;gap:.15rem}
+.brand{display:flex;align-items:center;gap:.6rem;padding:.35rem .5rem .8rem;font-weight:700;font-size:1.0625rem;letter-spacing:-.02em}
+.brand i{width:22px;height:22px;border-radius:6px;background:var(--accent);flex:none;position:relative}
+.brand i::after{content:"";position:absolute;inset:6px;border-radius:2px;background:var(--accent-fg)}
+.rail-group{margin:.8rem .6rem .2rem;font-size:.75rem;font-weight:600;color:var(--text-3)}
+.rail-link{display:flex;align-items:center;gap:.7rem;padding:.45rem .6rem;border-radius:var(--r-sm);color:var(--text-2);font-weight:500;background:none;border:0;width:100%;text-align:left;cursor:pointer}
+.rail-link:hover{background:var(--surface-2);color:var(--text)}
+.rail-link.active{background:var(--accent-weak);color:var(--text);font-weight:600}
+.rail-link .icon{color:var(--text-3);transition:color .15s}.rail-link:hover .icon,.rail-link.active .icon{color:var(--accent)}
+.rail-link .count{margin-left:auto;font-size:.75rem;padding:0 .4rem;border-radius:99px;background:var(--bad);color:#fff;font-weight:650;min-width:1.3rem;text-align:center}
+.rail-foot{margin-top:auto;padding-top:.6rem;border-top:1px solid var(--line);display:grid;gap:.15rem}
+.main{min-width:0;display:flex;flex-direction:column;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:20;height:var(--top);display:flex;align-items:center;gap:.75rem;padding:0 1.25rem;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar .title{flex:1;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-prog{display:flex;align-items:center;gap:.7rem;font-size:.8125rem;color:var(--text-2)}
+.tb-prog .meter{width:clamp(70px,16vw,180px)}
+.content{padding:1.5rem 1.25rem 4rem;width:100%;max-width:1100px;margin:0 auto;flex:1;animation:fadein .3s var(--ease)}
+@keyframes fadein{from{opacity:0;translate:0 6px}}
+.page-head{margin-bottom:1.25rem}.page-head p{color:var(--text-2);margin-top:.25rem;max-width:62ch}
+.bottombar{display:none}
+
+/* controls */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;height:34px;padding:0 .9rem;font-weight:600;font-size:.875rem;color:var(--text);background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r-sm);cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover:not(:disabled){background:var(--surface-3)}.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent}.btn.primary:hover:not(:disabled){background:color-mix(in srgb,var(--accent) 88%,#fff)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--text-2)}.btn.ghost:hover:not(:disabled){background:var(--surface-2);color:var(--text)}
+.btn.lg{height:40px;padding:0 1.2rem}
+.btn.icon-only{width:34px;padding:0}
+.input{font:inherit;font-size:.9375rem;color:var(--text);background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r-sm);padding:.5rem .75rem;min-height:40px;width:100%;transition:border-color .15s}
+.input:hover{border-color:var(--text-3)}.input:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.input::placeholder{color:var(--text-3)}
+.seg{display:inline-flex;padding:2px;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-sm);flex-wrap:wrap}
+.seg button{font-size:.8125rem;font-weight:550;border:0;background:transparent;color:var(--text-2);height:28px;padding:0 .75rem;border-radius:7px;cursor:pointer}
+.seg button:hover{color:var(--text)}.seg button.on{background:var(--surface-3);color:var(--text);box-shadow:0 0 0 1px var(--line-2)}
+.chip{display:inline-flex;align-items:center;gap:.4rem;height:28px;padding:0 .7rem;border-radius:99px;border:1px solid var(--line-2);background:transparent;color:var(--text-2);font-size:.8125rem;cursor:pointer}
+.chip:hover{background:var(--surface-2);color:var(--text)}
+.chip[aria-pressed=true]{background:var(--accent-weak);border-color:color-mix(in srgb,var(--accent) 60%,transparent);color:var(--text)}
+.chip small{color:var(--text-3)}
+.switch{position:relative;width:38px;height:22px;flex:none;border-radius:99px;background:var(--surface-3);border:1px solid var(--line-2);cursor:pointer;padding:0;transition:background .2s}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--text-2);transition:translate .2s var(--ease),background .2s}
+.switch[aria-checked=true]{background:var(--accent);border-color:transparent}.switch[aria-checked=true]::after{translate:16px 0;background:var(--accent-fg)}
+.switch:disabled{opacity:.4;cursor:not-allowed}
+.kbd{font-family:var(--mono);font-size:.72rem;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;padding:0 .35rem;color:var(--text-2);background:var(--surface-2);min-width:1.4rem;text-align:center;display:inline-block}
+.badge{display:inline-flex;align-items:center;gap:.35rem;height:20px;padding:0 .5rem;font-size:.75rem;font-weight:600;border-radius:99px;color:var(--text-2);background:var(--surface-3);white-space:nowrap}
+.badge.good{color:var(--good);background:var(--good-weak)}.badge.bad{color:var(--bad);background:var(--bad-weak)}.badge.warn{color:var(--warn);background:var(--warn-weak)}
+.meter{height:6px;border-radius:99px;background:var(--surface-3);overflow:hidden}.meter>div{height:100%;background:var(--accent);border-radius:99px;transition:width .4s var(--ease)}
+.meter.good>div{background:var(--good)}
+
+/* panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.panel-h{display:flex;align-items:center;gap:.6rem;padding:.7rem 1rem;border-bottom:1px solid var(--line);min-height:46px;flex-wrap:wrap}
+.panel-h h3{margin-right:auto}
+.panel-b{padding:1rem}.panel-b.flush{padding:0}
+.panel-f{display:flex;align-items:center;gap:.6rem;justify-content:space-between;padding:.65rem 1rem;border-top:1px solid var(--line);background:var(--surface-2);border-radius:0 0 var(--r) var(--r);font-size:.8125rem;color:var(--text-3);flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:1.25rem;align-items:start}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;margin-bottom:1.25rem}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:.8rem 1rem;display:flex;flex-direction:column;gap:.4rem}
+.stat>span{font-size:.78rem;color:var(--text-3);font-weight:550}
+.stat strong{font-size:1.6rem;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat strong small{font-size:1rem;font-weight:500;color:var(--text-3)}
+.cards{display:grid;gap:.6rem}
+.card-link{display:flex;align-items:center;gap:.9rem;padding:.9rem 1rem;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);cursor:pointer;text-align:left;width:100%;transition:border-color .15s,background .15s}
+.card-link:hover{border-color:var(--accent);background:var(--surface-2)}
+.card-link .ico{width:38px;height:38px;border-radius:10px;background:var(--accent-weak);display:grid;place-items:center;flex:none}
+.card-link b{display:block}.card-link span.d{color:var(--text-2);font-size:.8125rem}
+.bars{list-style:none;margin:0;padding:0;display:grid;gap:.8rem}
+.bars li{display:grid;grid-template-columns:minmax(80px,150px) 1fr 3rem;gap:.8rem;align-items:center;font-size:.875rem}
+.bars li span:last-child{text-align:right;color:var(--text-2)}
+.list{list-style:none;margin:0;padding:0}.list>li{padding:.65rem 1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.6rem}.list>li:last-child{border-bottom:0}
+.empty{display:flex;flex-direction:column;align-items:center;gap:.4rem;text-align:center;padding:1.8rem 1rem;color:var(--text-2)}.empty .icon{width:26px;height:26px;color:var(--text-3)}
+.field-l{font-size:.8125rem;font-weight:600;color:var(--text-2);margin-bottom:.4rem;display:block}
+.setup-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;padding:.9rem 1rem;border-bottom:1px solid var(--line)}
+.setup-row:last-child{border-bottom:0}.setup-row .t{max-width:34ch}.setup-row .t b{display:block;font-weight:600}
+.chips{display:flex;gap:.4rem;flex-wrap:wrap}
+
+/* kviz */
+.quiz{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:1.25rem;align-items:start}
+.figure{background:#0e0f10;border:1px solid var(--line);border-radius:var(--r);display:flex;align-items:center;justify-content:center;min-height:260px;max-height:calc(100vh - 140px);overflow:hidden;position:sticky;top:calc(var(--top) + 1rem)}
+.figure img{max-width:100%;max-height:calc(100vh - 140px);display:block;object-fit:contain}
+.q-label{font-size:.75rem;font-weight:600;color:var(--text-3);margin-bottom:.35rem}
+.given{font-size:1.4rem;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.opts{display:grid;gap:.5rem}
+.opt{display:flex;align-items:center;gap:.75rem;width:100%;text-align:left;padding:.7rem .8rem;background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r-sm);cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover:not(:disabled){border-color:var(--text-2);background:var(--surface-3)}
+.opt:disabled{cursor:default}
+.opt.ok{background:var(--good-weak);border-color:var(--good)}
+.opt.bad{background:var(--bad-weak);border-color:var(--bad)}
+.opt .l{flex:1}
+.opt .mark{width:18px;height:18px}
+.fb{display:flex;gap:.7rem;padding:.8rem .9rem;border-radius:var(--r);border:1px solid;margin-top:.9rem;animation:fadein .25s var(--ease)}
+.fb .icon{margin-top:2px}
+.fb.ok{background:var(--good-weak);border-color:color-mix(in srgb,var(--good) 45%,transparent)}.fb.ok .icon{color:var(--good)}
+.fb.bad{background:var(--bad-weak);border-color:color-mix(in srgb,var(--bad) 45%,transparent)}.fb.bad .icon{color:var(--bad)}
+.fb.warn{background:var(--warn-weak);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}.fb.warn .icon{color:var(--warn)}
+.fb b{display:block}.fb p{color:var(--text-2);font-size:.8125rem;margin-top:.15rem}
+.qactions{display:flex;gap:.5rem;margin-top:.9rem;flex-wrap:wrap;align-items:center}
+
+/* vysledky */
+.big-num{font-size:3rem;font-weight:700;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1}
+.table{width:100%;border-collapse:collapse;font-size:.875rem}
+.table th{text-align:left;font-size:.75rem;font-weight:600;color:var(--text-3);padding:.5rem 1rem;border-bottom:1px solid var(--line)}
+.table td{padding:.55rem 1rem;border-bottom:1px solid var(--line)}.table tr:last-child td{border-bottom:0}
+
+/* galerie */
+.toolbar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.search{position:relative;flex:1;min-width:180px;max-width:320px}.search .icon{position:absolute;left:.7rem;top:50%;translate:0 -50%;color:var(--text-3);pointer-events:none}.search .input{padding-left:2.2rem}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.8rem}
+.gal{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;padding:0;cursor:pointer;text-align:left;transition:border-color .15s,translate .15s var(--ease)}
+.gal:hover{border-color:var(--line-2);translate:0 -2px}
+.gal .im{aspect-ratio:4/3;background:#0e0f10;overflow:hidden}.gal img{width:100%;height:100%;object-fit:cover;display:block;transition:scale .25s var(--ease)}.gal:hover img{scale:1.04}
+.gal .tx{padding:.6rem .75rem .75rem;display:grid;gap:.35rem;justify-items:start}.gal b{font-size:.875rem;font-weight:600;line-height:1.3}
+.scrim{position:fixed;inset:0;z-index:60;background:rgb(0 0 0/.72);display:grid;place-items:center;padding:1rem;animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.lightbox{width:min(980px,100%);max-height:94vh;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);background:var(--surface);border:1px solid var(--line-2);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.lightbox .im{background:#0e0f10;display:flex;align-items:center;justify-content:center;min-height:240px}.lightbox .im img{max-width:100%;max-height:90vh;display:block;object-fit:contain}
+.lightbox .tx{padding:1.2rem;display:flex;flex-direction:column;gap:.7rem;overflow:auto}
+
+@media(max-width:1000px){.grid2{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}.rail{display:none}
+  .topbar{padding:0 .85rem}.content{padding:1rem .85rem 5.5rem}
+  .quiz{grid-template-columns:minmax(0,1fr)}.figure{position:static;max-height:48vh;min-height:200px}.figure img{max-height:48vh}
+  .bottombar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;inset:auto 0 0 0;z-index:25;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .bottombar button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:.5rem 0;font-size:.6875rem;color:var(--text-2);background:none;border:0;cursor:pointer}
+  .bottombar button.active{color:var(--accent)}
+  .lightbox{grid-template-columns:minmax(0,1fr);overflow:auto}.lightbox .im img{max-height:50vh}
+  .bars li{grid-template-columns:1fr 3rem}.bars li .meter{grid-column:1/-1;order:3}
+  .kbd.hint{display:none}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
-<div class="wrap" id="app"></div>
+<div class="app" id="root"></div>
 
 <script>
 /* ============================================================
@@ -87,7 +207,7 @@ const WORKS = [
   {f:'01.jpg', name:'Venuše z Willendorfu / Dolních Věstonic', p:'paleolit',
    aliases:['venuše','venuše z willendorfu','willendorfská venuše','venuše z dolních věstonic','věstonická venuše','dolnověstonická venuše','venuše z věstonic','soška venuše','paleolitická venuše'],
    info:'Paleolitické ženské sošky – symbol plodnosti.'},
-  {f:'02.jpg', name:'Menhir', p:'neolit',
+  {f:'02.jpg', name:'Kamenný pastýř', p:'neolit',
    aliases:['menhir','menhir klobuky','zakletý pastýř','kamenný pastýř','menhir kamenný pastýř'],
    info:'Jeden svisle postavený kámen – megalitická stavba.'},
   {f:'03.jpg', name:'Kamenné řady v Carnacu', p:'neolit',
@@ -129,13 +249,13 @@ const WORKS = [
   {f:'15.jpg', name:'Palác v Knóssu', p:'krete',
    aliases:['palác v knóssu','knóssos','knossos','knóssos palác','knossos palác','palác knóssos','kréta palác','minojský palác','labyrint','palác v knosu','knosský palác','knossský palác'],
    info:'Minojský palác na Krétě, sloupy zužující se dolů.'},
-  {f:'16.jpg', name:'Bohyně s hady (Kréta)', p:'krete',
+  {f:'16.jpg', name:'Bohyně s hady', p:'krete',
    aliases:['bohyně s hady','hadí bohyně','bohyně s hady kréta','minojská bohyně','soška bohyně s hady','kněžka s hady','bohyně hadů','soška bohyně'],
    info:'Minojské sošky bohyně (nebo kněžky) s hady.'},
-  {f:'17.jpg', name:'Mykénská dáma (freska)', p:'mykeny',
+  {f:'17.jpg', name:'Pařížanka', p:'mykeny',
    aliases:['mykénská dáma','dáma z mykén','freska z mykén','mykénská freska','mykénská bohyně','hlava ženy','dáma','mykénská žena'],
    info:'Fragment nástěnné malby (fresky) z Mykén.'},
-  {f:'18.jpg', name:'Lví brána v Mykénách', p:'mykeny',
+  {f:'18.jpg', name:'Lví brána', p:'mykeny',
    aliases:['lví brána','lví brána mykény','brána v mykénách','lví brána v mykénách','mykénská brána','brána lvů'],
    info:'Vstup do mykénské citadely, nadpraží s reliéfem dvou lvic, kyklopské zdivo.'},
   {f:'19.jpg', name:'Atreova hrobka', p:'mykeny',
@@ -145,203 +265,288 @@ const WORKS = [
    aliases:['parthenon','partenon','chrám athény','chrám na akropoli','athéna parthenos','parthenon akropole','akropolis','akropole'],
    info:'Dórský chrám na athénské Akropoli (5. st. př. n. l.), Iktínos a Kallikratés.'}
 ];
+
 const perName = id => PERIODS.find(p=>p.id===id).name;
 
+/* ---------- ikony ---------- */
+const IC={
+ home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+ grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+ pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>',
+ layers:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+ image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
+ alert:'<path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.01"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ moon:'<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>',
+ auto:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+ check:'<path d="M20 6L9 17l-5-5"/>',x:'<path d="M18 6L6 18M6 6l12 12"/>',
+ arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+ retry:'<path d="M3 12a9 9 0 109-9 9 9 0 00-6.7 3L3 8"/><path d="M3 3v5h5"/>',
+ play:'<path d="M6 4l14 8-14 8z"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 8v.01M11 12h1v5h1"/>'
+};
+const ico=(n,c='')=>`<svg class="icon ${c}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
+
 /* ---------- pomocné funkce ---------- */
-const $app = document.getElementById('app');
-const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
-const esc = s => s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
-const STOP = new Set(['z','ze','v','ve','u','na','do','a','s','se','od','o','po','tzv','the','ii','kultura','kultury']);
-const toks = s => norm(s).split(' ').filter(t=>t && !STOP.has(t));
-function lev(a,b){
-  const m=a.length,n=b.length; if(!m) return n; if(!n) return m;
-  let prev=Array.from({length:n+1},(_,i)=>i);
-  for(let i=1;i<=m;i++){ const cur=[i];
-    for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
-    prev=cur; }
-  return prev[n];
-}
-function tokMatch(a,b){ // a = klíčové slovo aliasu, b = slovo z odpovědi
-  if(a===b) return true;
-  const L=Math.max(a.length,b.length);
-  if(Math.min(a.length,b.length)>=5 && (a.startsWith(b)||b.startsWith(a))) return true; // koncovky
-  const tol = L<=3?0 : L<=5?1 : L<=9?2 : 3;
-  return lev(a,b)<=tol;
-}
-// vrací 0..1 – jak dobře odpověď pokrývá nejlepší alias díla
-function score(answer,work){
-  const at = toks(answer); if(!at.length) return 0;
-  let best=0;
-  for(const al of [work.name,...work.aliases]){
-    const tt = toks(al); if(!tt.length) continue;
-    let hit=0; for(const t of tt) if(at.some(x=>tokMatch(t,x))) hit++;
-    const cov = hit/tt.length;
-    // aliasy z 1 slova nesmí vyhrát náhodou na velmi krátkých odpovědích
-    if(cov===1) best=Math.max(best, 1);
-    else best=Math.max(best, cov*0.9);
-  }
-  return best;
-}
-function judge(answer,work){
-  const s = score(answer,work);
-  if(s>=1) return {r:'ok'};
-  // patří odpověď spíš k jinému dílu?
-  let other=null, os=0;
-  for(const w of WORKS){ if(w===work) continue; const x=score(answer,w); if(x>os){os=x;other=w;} }
-  if(os>=1) return {r:'bad', other};
-  if(s>=0.5 && toks(answer).length) return {r:'part'};
-  return {r:'bad'};
-}
+const $=s=>document.querySelector(s);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+const STOP=new Set(['z','ze','v','ve','u','na','do','a','s','se','od','o','po','tzv','the','ii','kultura','kultury']);
+const toks=s=>norm(s).split(' ').filter(t=>t&&!STOP.has(t));
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let prev=Array.from({length:n+1},(_,i)=>i);
+  for(let i=1;i<=m;i++){const cur=[i];for(let j=1;j<=n;j++)cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));prev=cur;}return prev[n];}
+function tokMatch(a,b){if(a===b)return true;const L=Math.max(a.length,b.length);
+  if(Math.min(a.length,b.length)>=5&&(a.startsWith(b)||b.startsWith(a)))return true;
+  const tol=L<=3?0:L<=5?1:L<=9?2:3;return lev(a,b)<=tol;}
+function score(answer,work){const at=toks(answer);if(!at.length)return 0;let best=0;
+  for(const al of [work.name,...work.aliases]){const tt=toks(al);if(!tt.length)continue;let hit=0;
+    for(const t of tt)if(at.some(x=>tokMatch(t,x)))hit++;const cov=hit/tt.length;best=Math.max(best,cov===1?1:cov*.9);}
+  return best;}
+function judge(answer,work){const s=score(answer,work);if(s>=1)return{r:'ok'};
+  let other=null,os=0;for(const w of WORKS){if(w===work)continue;const x=score(answer,w);if(x>os){os=x;other=w;}}
+  if(os>=1)return{r:'bad',other};
+  if(s>=.5&&toks(answer).length)return{r:'part'};return{r:'bad'};}
+
+/* ---------- uložení (localStorage) ---------- */
+const LS='poznavacka-v1';
+let DB={works:{},best:{},sessions:0};
+try{Object.assign(DB,JSON.parse(localStorage.getItem(LS))||{});}catch(e){}
+const persist=()=>{try{localStorage.setItem(LS,JSON.stringify(DB));}catch(e){}};
+function note(w,ok){const s=DB.works[w.f]||(DB.works[w.f]={h:''});s.h=(s.h+(ok?'1':'0')).slice(-6);persist();}
+function fixLast(w){const s=DB.works[w.f];if(s&&s.h){s.h=s.h.slice(0,-1)+'1';persist();}}
+const isWeak=w=>{const h=(DB.works[w.f]||{}).h||'';return h.length>0&&(h.endsWith('0')||(h.match(/0/g)||[]).length>=2);};
+const weakList=()=>WORKS.filter(isWeak);
+const mastery=ws=>{let ok=0,all=0;ws.forEach(w=>{const h=(DB.works[w.f]||{}).h||'';all+=h.length;ok+=(h.match(/1/g)||[]).length;});return all?Math.round(ok/all*100):null;};
+const seenCount=()=>WORKS.filter(w=>((DB.works[w.f]||{}).h||'').length).length;
+
+/* ---------- motiv ---------- */
+function themePref(){try{return localStorage.getItem('poznavacka-theme')||'system';}catch(e){return'system';}}
+function applyTheme(p){try{localStorage.setItem('poznavacka-theme',p);}catch(e){}
+  const d=p==='dark'||(p==='system'&&!matchMedia('(prefers-color-scheme: light)').matches);
+  document.documentElement.setAttribute('data-theme',d?'dark':'light');}
+function cycleTheme(){const o=['system','dark','light'];applyTheme(o[(o.indexOf(themePref())+1)%3]);paintTheme();}
+const THEME_L={system:'Systém',dark:'Tmavý',light:'Světlý'};
+function paintTheme(){const p=themePref();document.querySelectorAll('[data-theme-btn]').forEach(b=>{
+  b.innerHTML=ico(p==='system'?'auto':p==='dark'?'moon':'sun')+(b.dataset.long?`<span>Motiv: ${THEME_L[p]}</span>`:'');b.title='Motiv: '+THEME_L[p];});}
 
 /* ---------- stav ---------- */
-let S=null;
-function startSession(mode, pool){
-  S={mode, queue:shuffle(pool.map(w=>WORKS.indexOf(w))), total:pool.length, done:0, right:0, wrong:[], cur:null, answered:false, pool};
-  next();
-}
-function next(){
-  if(!S.queue.length){ return end(); }
-  S.cur = S.queue.shift(); S.answered=false;
-  render();
-}
-function record(ok){
-  S.answered=true; S.done++;
-  if(ok) S.right++; else if(!S.wrong.includes(S.cur)) S.wrong.push(S.cur);
-  const el=document.getElementById('sc'); if(el) el.textContent=`${S.right} / ${S.done}`;
-  const b=document.getElementById('pb'); if(b) b.style.width=(S.done/S.total*100)+'%';
-  setTimeout(()=>{const a=document.getElementById('after'); if(a) a.scrollIntoView({behavior:'smooth',block:'nearest'});},60);
-}
-const MODE_NAMES={choice:'Výběr z 4 možností',write:'Napiš název',period:'Přiřaď období'};
+const MODES={
+  choice:{name:'Výběr z 4 možností',short:'Výběr',icon:'grid',desc:'Uvidíš dílo a vybereš správný název ze čtyř.'},
+  write:{name:'Napiš název',short:'Psaní',icon:'pen',desc:'Název napíšeš sám. Překlepy a jiné tvary se tolerují.'},
+  period:{name:'Přiřaď období',short:'Období',icon:'layers',desc:'Název je dán, ty vybereš období nebo kulturu.'}
+};
+let CFG={mode:'choice',periods:new Set(PERIODS.map(p=>p.id)),count:'all',weak:false};
+let S=null,view='home';
 
-/* ---------- obrazovky ---------- */
+/* ---------- kostra ---------- */
+function navItems(){const wk=weakList().length;return[
+  {k:'home',l:'Přehled',i:'home',go:()=>go('home')},
+  {g:'Procvičování'},
+  {k:'choice',l:'Výběr z 4',i:'grid',go:()=>go('setup','choice')},
+  {k:'write',l:'Napiš název',i:'pen',go:()=>go('setup','write')},
+  {k:'period',l:'Přiřaď období',i:'layers',go:()=>go('setup','period')},
+  {g:'Učení'},
+  {k:'gallery',l:'Přehled děl',i:'image',go:()=>go('gallery')},
+  {k:'weak',l:'Slabá místa',i:'alert',count:wk,go:()=>{CFG.weak=true;go('setup',CFG.mode,true);}}
+];}
+let NAV=[];
+function buildShell(){
+  NAV=navItems();
+  $('#root').innerHTML=`
+  <aside class="rail"><div class="brand"><i></i>Poznávačka</div>
+    ${NAV.map((n,i)=>n.g?`<div class="rail-group">${n.g}</div>`:`<button class="rail-link" data-nav="${i}">${ico(n.i)}<span>${n.l}</span>${n.count?`<span class="count">${n.count}</span>`:''}</button>`).join('')}
+    <div class="rail-foot"><button class="rail-link" data-theme-btn data-long="1"></button></div></aside>
+  <div class="main"><header class="topbar"><div class="title" id="tb-title"></div><div class="tb-prog hidden" id="tb-prog"></div><button class="btn ghost icon-only" data-theme-btn></button></header>
+    <main class="content" id="content"></main></div>
+  <nav class="bottombar">${[[0,'Přehled'],[2,'Výběr'],[3,'Psaní'],[4,'Období'],[6,'Díla']].map(([i,l])=>`<button data-nav="${i}">${ico(NAV[i].i)}<span>${l}</span></button>`).join('')}</nav>`;
+  document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>NAV[+b.dataset.nav].go());
+  document.querySelectorAll('[data-theme-btn]').forEach(b=>b.onclick=cycleTheme);
+  paintTheme();
+}
+function setActive(key){document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',NAV[+b.dataset.nav].k===key));}
+function setView(title,html,key){$('#tb-title').textContent=title;$('#tb-prog').classList.add('hidden');const c=$('#content');
+  c.style.animation='none';c.offsetWidth;c.style.animation='';c.innerHTML=html;setActive(key);window.scrollTo(0,0);}
+function go(v,mode,keepWeak){view=v;if(!keepWeak&&v!=='quiz')CFG.weak=false;
+  if(v==='home')home();else if(v==='setup'){if(mode)CFG.mode=mode;setup();}else if(v==='gallery')gallery();}
+function refreshNav(){const wk=weakList().length;const i=NAV.findIndex(n=>n.k==='weak');const b=document.querySelector(`.rail [data-nav="${i}"]`);
+  if(!b)return;let c=b.querySelector('.count');if(wk){if(!c){c=document.createElement('span');c.className='count';b.appendChild(c);}c.textContent=wk;}else if(c)c.remove();}
+
+/* ---------- Přehled ---------- */
 function home(){
-  S=null;
-  $app.innerHTML=`
-  <h1>🏛️ Poznávačka</h1>
-  <p class="sub">Výtvarná výchova – opakování uměleckých děl (${WORKS.length} děl)</p>
-  <div class="menu">
-    <button class="mode" onclick="setup('choice')"><b>1 · Výběr z 4 možností</b><span>Uvidíš dílo a vybereš správný název ze čtyř.</span></button>
-    <button class="mode" onclick="setup('write')"><b>2 · Napiš název</b><span>Název napíšeš sám. Překlepy a jiné tvary názvu se tolerují.</span></button>
-    <button class="mode" onclick="setup('period')"><b>3 · Přiřaď období</b><span>Název je dán, ty vybereš období / kulturu (neolit, Egypt, Mezopotámie…).</span></button>
-    <button class="mode" onclick="gallery()"><b>📖 Přehled děl</b><span>Všechna díla s názvy a obdobími k učení.</span></button>
-  </div>`;
+  const seen=seenCount(),m=mastery(WORKS),wk=weakList();
+  const perHtml=PERIODS.map(p=>{const ws=WORKS.filter(w=>w.p===p.id);const v=mastery(ws);
+    return`<li><span>${esc(p.name)}</span><div class="meter ${v>=80?'good':''}"><div style="width:${v??0}%"></div></div><span class="num">${v===null?'–':v+' %'}</span></li>`;}).join('');
+  setView('Přehled',`
+  <div class="page-head"><h1>Poznávačka</h1><p>Opakování uměleckých děl z výtvarné výchovy. Vyber režim a procvičuj.</p></div>
+  <div class="stats">
+    <div class="stat"><span>Děl celkem</span><strong>${WORKS.length}</strong></div>
+    <div class="stat"><span>Období</span><strong>${PERIODS.length}</strong></div>
+    <div class="stat"><span>Vyzkoušeno</span><strong>${seen}<small> / ${WORKS.length}</small></strong></div>
+    <div class="stat"><span>Úspěšnost</span><strong>${m===null?'–':m}<small>${m===null?'':' %'}</small></strong></div>
+  </div>
+  <div class="grid2">
+   <div class="stack">
+    <div class="cards">${Object.entries(MODES).map(([k,x])=>`<button class="card-link" data-m="${k}"><span class="ico">${ico(x.icon)}</span><span style="flex:1"><b>${x.name}</b><span class="d">${x.desc}</span></span>${DB.best[k]!=null?`<span class="badge">nejlepší ${DB.best[k]} %</span>`:''}${ico('arrow','sm')}</button>`).join('')}</div>
+    <div class="panel"><div class="panel-h"><h3>Slabá místa</h3>${wk.length?`<button class="btn sm primary" id="wkgo" style="height:28px">Procvičit</button>`:''}</div>
+      ${wk.length?`<ul class="list">${wk.slice(0,6).map(w=>`<li><span style="flex:1">${esc(w.name)}</span><span class="badge bad">${esc(perName(w.p))}</span></li>`).join('')}${wk.length>6?`<li class="faint small">a dalších ${wk.length-6}</li>`:''}</ul>`
+      :`<div class="empty">${ico('check')}<b>Zatím žádná</b><span class="small">Díla, u kterých chybuješ, se objeví tady.</span></div>`}</div>
+   </div>
+   <div class="panel"><div class="panel-h"><h3>Podle období</h3><span class="faint small">zvládnutí</span></div><div class="panel-b"><ul class="bars">${perHtml}</ul></div>
+     <div class="panel-f"><span>${DB.sessions} dokončených kol</span>${seen?`<button class="btn ghost sm" id="reset" style="height:26px">Vynulovat</button>`:''}</div></div>
+  </div>`,'home');
+  document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>go('setup',b.dataset.m));
+  const wg=$('#wkgo');if(wg)wg.onclick=()=>{CFG.weak=true;go('setup',CFG.mode,true);};
+  const rs=$('#reset');if(rs)rs.onclick=()=>{if(confirm('Smazat všechny uložené výsledky?')){DB={works:{},best:{},sessions:0};persist();buildShell();home();}};
 }
-let SEL = new Set(PERIODS.map(p=>p.id));
-function setup(mode){
-  $app.innerHTML=`
-  <div class="top"><button class="back" onclick="home()">← Zpět</button></div>
-  <h1>${MODE_NAMES[mode]}</h1>
-  <p class="sub">Z jakých období chceš být zkoušen?</p>
-  <div class="sel" id="chips"></div>
-  <div class="actions"><button class="btn" id="go">Začít</button></div>`;
-  const draw=()=>{ document.getElementById('chips').innerHTML=PERIODS.map(p=>`<button class="chip ${SEL.has(p.id)?'on':''}" data-id="${p.id}">${p.name}</button>`).join('')
-     +`<button class="chip" data-all="1">vše / nic</button>`;
-     document.getElementById('go').disabled = SEL.size===0; };
-  draw();
-  document.getElementById('chips').onclick=e=>{ const c=e.target.closest('.chip'); if(!c) return;
-    if(c.dataset.all){ SEL = SEL.size===PERIODS.length? new Set() : new Set(PERIODS.map(p=>p.id)); }
-    else { const id=c.dataset.id; SEL.has(id)?SEL.delete(id):SEL.add(id); }
-    draw(); };
-  document.getElementById('go').onclick=()=>{
-    const pool=WORKS.filter(w=>SEL.has(w.p));
-    if(mode==='choice' && pool.length<4){ alert('Pro tento režim vyber aspoň 4 díla (víc období).'); return; }
-    startSession(mode,pool);
-  };
-}
-function header(){
-  return `<div class="top"><button class="back" onclick="if(confirm('Ukončit procvičování?'))home()">← Domů</button>
-  <div class="score">${MODE_NAMES[S.mode]} · skóre <span id="sc">${S.right} / ${S.done}</span></div></div>
-  <div class="bar"><i id="pb" style="width:${S.done/S.total*100}%"></i></div>`;
-}
-function imgBox(w){ return `<div class="imgbox"><img src="img/${w.f}" alt="Dílo k určení"></div>`; }
-function nextBtn(){ return `<div class="actions"><button class="btn" id="nx" autofocus>${S.queue.length?'Další →':'Dokončit'}</button></div>`; }
 
-function render(){
-  const w=WORKS[S.cur];
-  if(S.mode==='choice') renderChoice(w);
-  else if(S.mode==='write') renderWrite(w);
-  else renderPeriod(w);
+/* ---------- Nastavení ---------- */
+function poolFromCfg(){let ws=WORKS.filter(w=>CFG.periods.has(w.p));if(CFG.weak)ws=ws.filter(isWeak);return ws;}
+function setup(){
+  const pool=poolFromCfg(),n=CFG.count==='all'?pool.length:Math.min(+CFG.count,pool.length),wk=weakList().length;
+  setView(MODES[CFG.mode].name,`
+  <div class="page-head"><h1>${MODES[CFG.mode].name}</h1><p>${MODES[CFG.mode].desc}</p></div>
+  <div class="panel" style="max-width:760px">
+    <div class="setup-row"><div class="t"><b>Režim</b><span class="small faint">Můžeš ho kdykoli změnit.</span></div>
+      <div class="seg" id="s-mode">${Object.entries(MODES).map(([k,x])=>`<button data-v="${k}" class="${CFG.mode===k?'on':''}">${x.short}</button>`).join('')}</div></div>
+    <div class="setup-row" style="align-items:flex-start"><div class="t"><b>Období</b><span class="small faint">Z čeho chceš být zkoušen.</span></div>
+      <div class="chips" id="s-per" style="flex:1;justify-content:flex-end;max-width:440px">${PERIODS.map(p=>`<button class="chip" aria-pressed="${CFG.periods.has(p.id)}" data-v="${p.id}">${esc(p.name)} <small>${WORKS.filter(w=>w.p===p.id).length}</small></button>`).join('')}
+      <button class="chip" id="s-all">${CFG.periods.size===PERIODS.length?'Zrušit vše':'Vybrat vše'}</button></div></div>
+    <div class="setup-row"><div class="t"><b>Počet otázek</b></div>
+      <div class="seg" id="s-cnt">${['10','20','all'].map(v=>`<button data-v="${v}" class="${CFG.count===v?'on':''}">${v==='all'?'Všechna':v}</button>`).join('')}</div></div>
+    <div class="setup-row"><div class="t"><b>Jen slabá místa</b><span class="small faint">${wk?`Díla, kde ses nedávno spletl (${wk}).`:'Zatím nemáš žádná slabá místa.'}</span></div>
+      <button class="switch" id="s-weak" role="switch" aria-checked="${CFG.weak}" ${wk?'':'disabled'}></button></div>
+    <div class="panel-f"><span>${n?`Vybráno ${n} ${n===1?'dílo':n<5?'díla':'děl'}`:'Nic k procvičení – uprav výběr'}</span>
+      <button class="btn primary lg" id="go" ${n?'':'disabled'}>${ico('play','sm')} Začít</button></div>
+  </div>`,CFG.weak?'weak':CFG.mode);
+  $('#s-mode').onclick=e=>{const b=e.target.closest('button');if(b){CFG.mode=b.dataset.v;setup();}};
+  $('#s-per').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+    if(b.id==='s-all')CFG.periods=CFG.periods.size===PERIODS.length?new Set():new Set(PERIODS.map(p=>p.id));
+    else{const id=b.dataset.v;CFG.periods.has(id)?CFG.periods.delete(id):CFG.periods.add(id);}setup();};
+  $('#s-cnt').onclick=e=>{const b=e.target.closest('button');if(b){CFG.count=b.dataset.v;setup();}};
+  $('#s-weak').onclick=()=>{CFG.weak=!CFG.weak;setup();};
+  $('#go').onclick=()=>{let p=shuffle(poolFromCfg());if(CFG.count!=='all')p=p.slice(0,+CFG.count);start(CFG.mode,p);};
 }
-function renderChoice(w){
-  const pool = S.pool.length>=4 ? S.pool : WORKS;
-  const others = shuffle(WORKS.filter(x=>x!==w && x.name!==w.name));
-  // preferuj zmatečné možnosti ze stejného období, ale ne jen ty
-  const same = others.filter(x=>x.p===w.p), diff = others.filter(x=>x.p!==w.p);
-  const picks = shuffle([...same.slice(0,2), ...diff]).slice(0,3);
-  const opts = shuffle([w,...picks]);
-  $app.innerHTML = header()+imgBox(w)+`<p class="q">Co je na obrázku?</p><div class="opts" id="opts">${
-    opts.map((o,i)=>`<button class="opt" data-i="${WORKS.indexOf(o)}">${esc(o.name)}</button>`).join('')}</div><div id="after"></div>`;
-  document.getElementById('opts').onclick=e=>{ const b=e.target.closest('.opt'); if(!b||S.answered) return;
-    const idx=+b.dataset.i, ok = idx===S.cur; record(ok);
-    document.querySelectorAll('.opt').forEach(x=>{ x.disabled=true; if(+x.dataset.i===S.cur) x.classList.add('ok'); });
-    if(!ok) b.classList.add('bad');
-    document.getElementById('after').innerHTML = `<div class="fb ${ok?'ok':'bad'}"><b>${ok?'Správně!':'Špatně'} – ${esc(w.name)}</b><small>${esc(perName(w.p))}. ${esc(w.info)}</small></div>`+nextBtn();
-    document.getElementById('nx').onclick=next; };
+
+/* ---------- Kvíz ---------- */
+function start(mode,pool){S={mode,order:pool.map(w=>WORKS.indexOf(w)),i:0,right:0,wrong:[],answered:false,total:pool.length};view='quiz';question();}
+const cur=()=>WORKS[S.order[S.i]];
+function paintProg(){const p=$('#tb-prog');p.classList.remove('hidden');
+  p.innerHTML=`<span class="num">${S.i+(S.answered?1:0)} / ${S.total}</span><div class="meter"><div style="width:${(S.i+(S.answered?1:0))/S.total*100}%"></div></div><span class="badge good num">${S.right}</span><span class="badge bad num">${S.i+(S.answered?1:0)-S.right}</span>`;}
+function question(){
+  if(S.i>=S.total)return finish();
+  S.answered=false;const w=cur();
+  const fig=`<div class="figure"><img src="img/${w.f}" alt="Dílo k určení"></div>`;
+  let side='';
+  if(S.mode==='choice'){
+    const others=shuffle(WORKS.filter(x=>x!==w&&x.name!==w.name));
+    const same=others.filter(x=>x.p===w.p),diff=others.filter(x=>x.p!==w.p);
+    const opts=shuffle([w,...shuffle([...same.slice(0,2),...diff]).slice(0,3)]);
+    side=`<div class="q-label">Co je na obrázku?</div><div class="opts" id="opts">${opts.map((o,i)=>`<button class="opt" data-i="${WORKS.indexOf(o)}" data-key="${i+1}"><span class="kbd hint">${i+1}</span><span class="l">${esc(o.name)}</span></button>`).join('')}</div>`;
+  }else if(S.mode==='period'){
+    side=`<div class="q-label">Název díla</div><div class="given">${esc(w.name)}</div><div class="q-label" style="margin-top:1.1rem">Do jakého období patří?</div>
+      <div class="opts" id="opts">${PERIODS.map((p,i)=>`<button class="opt" data-id="${p.id}" data-key="${i+1}"><span class="kbd hint">${i+1}</span><span class="l">${esc(p.name)}</span></button>`).join('')}</div>`;
+  }else{
+    side=`<div class="q-label">Napiš název díla</div>
+      <form id="f" autocomplete="off" class="stack" style="gap:.6rem"><input class="input" id="ans" placeholder="např. Parthenon" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="row"><button class="btn primary" type="submit">Zkontrolovat</button><button class="btn ghost" type="button" id="dk">Nevím</button><span class="faint small sp" style="text-align:right"><span class="kbd hint">Enter</span></span></div></form>`;
+  }
+  const t=MODES[S.mode].name;
+  setView(t,`<div class="quiz">${fig}<div><div class="panel"><div class="panel-b">${side}<div id="after"></div></div></div></div></div>`,S.mode);
+  paintProg();
+  if(S.mode==='write'){const inp=$('#ans');inp.focus();
+    $('#f').onsubmit=e=>{e.preventDefault();const v=inp.value.trim();if(!v||S.answered)return;const j=judge(v,w);answerWrite(j.r,j.other);};
+    $('#dk').onclick=()=>answerWrite('skip');}
+  else $('#opts').onclick=e=>{const b=e.target.closest('.opt');if(!b||S.answered)return;
+    const ok=S.mode==='choice'?+b.dataset.i===S.order[S.i]:b.dataset.id===w.p;
+    S.answered=true;const right=S.mode==='choice'?o=>+o.dataset.i===S.order[S.i]:o=>o.dataset.id===w.p;
+    document.querySelectorAll('.opt').forEach(o=>{o.disabled=true;if(right(o)){o.classList.add('ok');o.insertAdjacentHTML('beforeend',ico('check','mark'));}});
+    if(!ok){b.classList.add('bad');b.insertAdjacentHTML('beforeend',ico('x','mark'));}
+    record(w,ok);
+    feedback(ok?'ok':'bad',ok?'Správně':'Špatně',S.mode==='choice'?`${esc(w.name)}`:`${esc(perName(w.p))}`,`${S.mode==='choice'?esc(perName(w.p))+'. ':''}${esc(w.info)}`);};
 }
-function renderWrite(w){
-  $app.innerHTML = header()+imgBox(w)+`<p class="q">Napiš název díla:</p>
-  <form class="row" id="f" autocomplete="off"><input type="text" id="ans" placeholder="např. Parthenon" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="btn" type="submit">Zkontrolovat</button></form>
-  <div class="actions"><button class="btn gray" id="dk">Nevím</button></div><div id="after"></div>`;
-  const inp=document.getElementById('ans'); inp.focus();
-  const finish=(kind,ans)=>{
-    if(S.answered) return;
-    let cls,msg,sub='';
-    if(kind==='ok'){ record(true); cls='ok'; msg='Správně!'; }
-    else if(kind==='skip'){ record(false); cls='bad'; msg='Správně je:'; }
-    else if(kind==='part'){ record(false); cls='warn'; msg='Skoro – chybí upřesnění. Správně je:'; }
-    else { record(false); cls='bad'; msg='Špatně. Správně je:'; if(kind.other) sub=`Tvoje odpověď sedí spíš k dílu „${esc(kind.other.name)}“. `; }
-    const override = cls!=='ok' ? `<button class="btn alt" id="ov">Měl jsem to správně (počítat)</button>`:'';
-    document.getElementById('after').innerHTML=`<div class="fb ${cls}"><b>${msg} ${esc(w.name)}</b><small>${sub}${esc(perName(w.p))}. ${esc(w.info)}</small></div>
-      <div class="actions">${override}<button class="btn" id="nx">${S.queue.length?'Další →':'Dokončit'}</button></div>`;
-    document.getElementById('dk').disabled=true; inp.disabled=true;
-    const ov=document.getElementById('ov');
-    if(ov) ov.onclick=()=>{ S.right++; S.wrong=S.wrong.filter(x=>x!==S.cur); document.getElementById('sc').textContent=`${S.right} / ${S.done}`; ov.remove(); };
-    document.getElementById('nx').onclick=next; document.getElementById('nx').focus();
-  };
-  document.getElementById('f').onsubmit=e=>{ e.preventDefault(); const v=inp.value.trim(); if(!v) return;
-    const j=judge(v,w); finish(j.r==='ok'?'ok':j.r==='part'?'part':{other:j.other}, v); };
-  document.getElementById('dk').onclick=()=>finish('skip');
+function record(w,ok){S.answered=true;if(ok)S.right++;else if(!S.wrong.includes(S.order[S.i]))S.wrong.push(S.order[S.i]);note(w,ok);paintProg();}
+function nextBtnHtml(extra=''){return`<div class="qactions">${extra}<button class="btn primary" id="nx">${S.i+1>=S.total?'Dokončit':'Další'} ${ico('arrow','sm')}</button><span class="kbd hint">Enter</span></div>`;}
+function feedback(cls,head,main,info,extra=''){
+  const icn=cls==='ok'?'check':cls==='warn'?'info':'x';
+  $('#after').innerHTML=`<div class="fb ${cls}">${ico(icn)}<div><b>${head}: ${main}</b><p>${info}</p></div></div>`+nextBtnHtml(extra);
+  $('#nx').onclick=advance;const ov=$('#ov');
+  if(ov)ov.onclick=()=>{S.right++;S.wrong=S.wrong.filter(x=>x!==S.order[S.i]);fixLast(cur());ov.remove();paintProg();};
+  $('#after').scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-function renderPeriod(w){
-  const used = PERIODS.filter(p=>S.pool.some(x=>x.p===p.id) || true);
-  $app.innerHTML = header()+imgBox(w)+`<div class="given">${esc(w.name)}</div><p class="q">Do jakého období / kultury dílo patří?</p>
-  <div class="grid2" id="opts">${PERIODS.map(p=>`<button class="opt" data-id="${p.id}">${p.name}</button>`).join('')}</div><div id="after"></div>`;
-  document.getElementById('opts').onclick=e=>{ const b=e.target.closest('.opt'); if(!b||S.answered) return;
-    const ok=b.dataset.id===w.p; record(ok);
-    document.querySelectorAll('.opt').forEach(x=>{ x.disabled=true; if(x.dataset.id===w.p) x.classList.add('ok'); });
-    if(!ok) b.classList.add('bad');
-    document.getElementById('after').innerHTML=`<div class="fb ${ok?'ok':'bad'}"><b>${ok?'Správně!':'Špatně'} – ${esc(perName(w.p))}</b><small>${esc(w.info)}</small></div>`+nextBtn();
-    document.getElementById('nx').onclick=next; };
+function answerWrite(kind,other){
+  if(S.answered)return;const w=cur();const inp=$('#ans');
+  const ok=kind==='ok';record(w,ok);inp.disabled=true;$('#dk').disabled=true;$('#f button[type=submit]').disabled=true;
+  const ov=ok?'':`<button class="btn" id="ov" type="button">Měl jsem to správně</button>`;
+  const info=`${esc(perName(w.p))}. ${esc(w.info)}`;
+  if(ok)feedback('ok','Správně',esc(w.name),info);
+  else if(kind==='part')feedback('warn','Skoro – chybí upřesnění. Správně je',esc(w.name),info,ov);
+  else if(kind==='skip')feedback('bad','Správně je',esc(w.name),info,ov);
+  else feedback('bad','Špatně. Správně je',esc(w.name),(other?`Tvoje odpověď sedí spíš k dílu „${esc(other.name)}“. `:'')+info,ov);
 }
-function end(){
-  const pct = S.total? Math.round(S.right/S.total*100):0;
-  const wrongList = S.wrong.map(i=>`<li>${esc(WORKS[i].name)} <em style="color:var(--muted)">(${esc(perName(WORKS[i].p))})</em></li>`).join('');
-  $app.innerHTML=`<div class="top"><button class="back" onclick="home()">← Domů</button></div>
-  <div class="end"><div class="big">${pct} %</div><p>${S.right} z ${S.total} správně · ${MODE_NAMES[S.mode]}</p>
-  ${S.wrong.length?`<p style="text-align:left"><b>Chyby u:</b></p><ul style="text-align:left">${wrongList}</ul>`:'<p>Bez chyby! 🎉</p>'}
-  <div class="actions" style="justify-content:center">
-   ${S.wrong.length?'<button class="btn" id="rw">Procvičit chyby</button>':''}
-   <button class="btn alt" id="again">Znovu</button><button class="btn gray" onclick="home()">Menu</button></div></div>`;
-  const mode=S.mode, pool=S.pool, wr=S.wrong.slice();
-  document.getElementById('again').onclick=()=>startSession(mode,pool);
-  const rw=document.getElementById('rw'); if(rw) rw.onclick=()=>{
-    const wp=wr.map(i=>WORKS[i]);
-    if(mode==='choice' && wp.length<4){ // režim výběru potřebuje jen pool pro zpracování, distraktory se berou ze všech děl
-      S={mode, queue:shuffle(wp.map(w=>WORKS.indexOf(w))), total:wp.length, done:0, right:0, wrong:[], cur:null, answered:false, pool:wp}; next();
-    } else startSession(mode,wp); };
+function advance(){S.i++;question();}
+function finish(){
+  DB.sessions++;const pct=S.total?Math.round(S.right/S.total*100):0;
+  const prev=DB.best[S.mode];if(prev==null||pct>prev)DB.best[S.mode]=pct;persist();refreshNav();
+  const wr=S.wrong.map(i=>WORKS[i]);const mode=S.mode,pool=S.order.map(i=>WORKS[i]);
+  setView('Výsledek',`
+  <div class="page-head"><h1>Hotovo</h1><p>${MODES[mode].name}</p></div>
+  <div class="grid2">
+   <div class="panel"><div class="panel-h"><h3>Co ti nešlo</h3><span class="badge ${wr.length?'bad':'good'}">${wr.length}</span></div>
+    ${wr.length?`<table class="table"><thead><tr><th>Dílo</th><th>Období</th></tr></thead><tbody>${wr.map(w=>`<tr><td>${esc(w.name)}</td><td><span class="badge">${esc(perName(w.p))}</span></td></tr>`).join('')}</tbody></table>`
+    :`<div class="empty">${ico('check')}<b>Bez chyby</b><span class="small">Všech ${S.total} děl správně.</span></div>`}</div>
+   <div class="stack">
+    <div class="panel"><div class="panel-b stack">
+      <div><div class="faint small">Úspěšnost</div><div class="big-num">${pct}<small style="font-size:1.4rem;color:var(--text-3)"> %</small></div></div>
+      <div class="meter ${pct>=80?'good':''}"><div style="width:${pct}%"></div></div>
+      <div class="small muted">${S.right} z ${S.total} správně${DB.best[mode]===pct&&prev!=null&&pct>prev?' · <b>nový rekord</b>':` · nejlepší ${DB.best[mode]} %`}</div></div></div>
+    <div class="stack" style="gap:.5rem">
+      ${wr.length?`<button class="btn primary lg" id="rw">${ico('retry','sm')} Procvičit chyby</button>`:''}
+      <button class="btn lg" id="again">Znovu stejné</button>
+      <button class="btn ghost lg" id="back">Zpět na přehled</button></div>
+   </div></div>`,'');
+  const rw=$('#rw');if(rw)rw.onclick=()=>start(mode,shuffle(wr));
+  $('#again').onclick=()=>start(mode,shuffle(pool));$('#back').onclick=()=>go('home');
+  view='result';
 }
+
+/* ---------- Galerie ---------- */
+let GF={q:'',p:'all'};
 function gallery(){
-  $app.innerHTML=`<div class="top"><button class="back" onclick="home()">← Zpět</button></div><h1>📖 Přehled děl</h1>
-  <p class="sub">Klikni na obrázek pro zvětšení.</p>
-  ${PERIODS.map(p=>`<h2 style="margin:18px 0 8px">${p.name}</h2><div class="gal">${
-    WORKS.filter(w=>w.p===p.id).map(w=>`<button class="gi" data-i="${WORKS.indexOf(w)}"><img src="img/${w.f}" loading="lazy" alt=""><div>${esc(w.name)}</div></button>`).join('')}</div>`).join('')}`;
-  document.querySelector('.wrap').onclick=e=>{ const g=e.target.closest('.gi'); if(!g) return; const w=WORKS[+g.dataset.i];
-    const m=document.createElement('div'); m.className='modal';
-    m.innerHTML=`<div class="in"><img src="img/${w.f}" alt=""><h2 style="margin:10px 0 2px">${esc(w.name)}</h2><div style="color:var(--muted)">${esc(perName(w.p))}. ${esc(w.info)}</div></div>`;
-    m.onclick=()=>m.remove(); document.body.appendChild(m); };
+  setView('Přehled děl',`
+  <div class="page-head"><h1>Přehled děl</h1><p>Všechna díla s názvy a obdobími k učení. Klikni pro zvětšení.</p></div>
+  <div class="toolbar"><div class="search">${ico('search','sm')}<input class="input" id="gq" placeholder="Hledat dílo…" value="${esc(GF.q)}"></div>
+   <div class="chips"><button class="chip" data-p="all" aria-pressed="${GF.p==='all'}">Vše</button>${PERIODS.map(p=>`<button class="chip" data-p="${p.id}" aria-pressed="${GF.p===p.id}">${esc(p.name)}</button>`).join('')}</div></div>
+  <div class="gallery" id="gal"></div>`,'gallery');
+  const draw=()=>{const q=norm(GF.q);const ws=WORKS.filter(w=>(GF.p==='all'||w.p===GF.p)&&(!q||norm(w.name+' '+perName(w.p)).includes(q)));
+    $('#gal').innerHTML=ws.length?ws.map(w=>`<button class="gal" data-i="${WORKS.indexOf(w)}"><div class="im"><img src="img/${w.f}" loading="lazy" alt=""></div><div class="tx"><b>${esc(w.name)}</b><span class="badge">${esc(perName(w.p))}</span></div></button>`).join('')
+      :`<div class="empty" style="grid-column:1/-1">${ico('search')}<b>Nic nenalezeno</b></div>`;};
+  draw();
+  $('#gq').oninput=e=>{GF.q=e.target.value;draw();};
+  document.querySelector('.toolbar .chips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;GF.p=b.dataset.p;
+    document.querySelectorAll('.toolbar .chip').forEach(c=>c.setAttribute('aria-pressed',c.dataset.p===GF.p));draw();};
+  $('#gal').onclick=e=>{const g=e.target.closest('.gal');if(g)lightbox(+g.dataset.i);};
 }
-home();
+let LB=null;
+function lightbox(i){closeLb();const w=WORKS[i];const el=document.createElement('div');el.className='scrim';
+  el.innerHTML=`<div class="lightbox" role="dialog"><div class="im"><img src="img/${w.f}" alt=""></div><div class="tx"><div class="row"><span class="badge">${esc(perName(w.p))}</span><span class="sp"></span><button class="btn ghost icon-only" id="lbx" title="Zavřít">${ico('x')}</button></div>
+  <h2>${esc(w.name)}</h2><p class="muted">${esc(w.info)}</p><div class="sp"></div><div class="row"><button class="btn" id="lbp">←</button><button class="btn" id="lbn">→</button><span class="faint small">${i+1} / ${WORKS.length}</span></div></div></div>`;
+  el.onclick=e=>{if(e.target===el)closeLb();};document.body.appendChild(el);LB={el,i};
+  $('#lbx').onclick=closeLb;$('#lbp').onclick=()=>lightbox((i+WORKS.length-1)%WORKS.length);$('#lbn').onclick=()=>lightbox((i+1)%WORKS.length);}
+function closeLb(){if(LB){LB.el.remove();LB=null;}}
+
+/* ---------- klávesy ---------- */
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(LB){if(e.key==='Escape')closeLb();else if(e.key==='ArrowLeft')lightbox((LB.i+WORKS.length-1)%WORKS.length);else if(e.key==='ArrowRight')lightbox((LB.i+1)%WORKS.length);return;}
+  if(view!=='quiz'||!S)return;
+  const ae=document.activeElement;const typing=ae&&ae.tagName==='INPUT'&&!ae.disabled;
+  if(e.key==='Enter'&&S.answered&&!e.repeat){if(ae&&ae.tagName==='BUTTON'&&!ae.disabled)return;e.preventDefault();advance();return;}
+  if(typing)return;
+  if(/^[1-9]$/.test(e.key)&&!S.answered){const b=document.querySelector(`[data-key="${e.key}"]`);if(b)b.click();}
+});
+matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',()=>{if(themePref()==='system')applyTheme('system');});
+
+buildShell();home();
 </script>
 </body>
 </html>
