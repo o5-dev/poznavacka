@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poznávačka – výtvarná výchova</title>
+<style>
+:root{--bg:#f4efe6;--card:#fffdf8;--ink:#2a2420;--muted:#7a6f64;--accent:#9c4a2f;--accent2:#c9743f;--ok:#2e7d4f;--okbg:#e3f3e9;--bad:#b3362c;--badbg:#f9e4e1;--warn:#b7791f;--warnbg:#fbf0d9;--line:#e2d8c8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Georgia,"Times New Roman",serif;min-height:100vh}
+.wrap{max-width:760px;margin:0 auto;padding:16px 16px 48px}
+h1{font-size:1.7rem;margin:.4em 0 .1em;letter-spacing:.01em}
+h2{font-size:1.15rem;margin:0}
+.sub{color:var(--muted);margin:0 0 18px}
+button{font:inherit;cursor:pointer}
+.menu{display:grid;gap:12px}
+.mode{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--ink);transition:transform .08s,border-color .15s}
+.mode:hover{border-color:var(--accent2);transform:translateY(-1px)}
+.mode b{display:block;font-size:1.1rem;margin-bottom:2px}
+.mode span{color:var(--muted);font-size:.93rem}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.back{background:none;border:0;color:var(--accent);padding:6px 0;font-size:.95rem}
+.score{color:var(--muted);font-size:.95rem;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:14px}
+.bar i{display:block;height:100%;background:var(--accent2);width:0;transition:width .25s}
+.imgbox{background:#1e1a17;border-radius:14px;display:flex;align-items:center;justify-content:center;min-height:220px;max-height:58vh;overflow:hidden}
+.imgbox img{max-width:100%;max-height:58vh;display:block;object-fit:contain}
+.q{margin:14px 0 8px;font-size:1.05rem;color:var(--muted)}
+.given{font-size:1.35rem;font-weight:bold;margin:14px 0 4px}
+.opts{display:grid;gap:8px}
+.opt{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;color:var(--ink)}
+.opt:hover:not([disabled]){border-color:var(--accent2)}
+.opt.ok{background:var(--okbg);border-color:var(--ok)}
+.opt.bad{background:var(--badbg);border-color:var(--bad)}
+.opt[disabled]{cursor:default}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:480px){.grid2{grid-template-columns:1fr}}
+.row{display:flex;gap:8px}
+input[type=text]{flex:1;font:inherit;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);min-width:0}
+input[type=text]:focus{outline:none;border-color:var(--accent2)}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:12px 18px}
+.btn.alt{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+.btn.gray{background:#e9e1d3;color:var(--ink)}
+.fb{margin-top:12px;border-radius:12px;padding:12px 14px}
+.fb.ok{background:var(--okbg);border:1px solid var(--ok)}
+.fb.bad{background:var(--badbg);border:1px solid var(--bad)}
+.fb.warn{background:var(--warnbg);border:1px solid var(--warn)}
+.fb b{display:block}
+.fb small{display:block;color:var(--muted);margin-top:2px}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.hidden{display:none!important}
+.end{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;text-align:center}
+.end .big{font-size:2.4rem;font-weight:bold;color:var(--accent)}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.gi{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;padding:0;text-align:left;color:var(--ink)}
+.gi img{width:100%;height:120px;object-fit:cover;display:block}
+.gi div{padding:6px 8px;font-size:.85rem}
+.gi em{display:block;color:var(--muted);font-style:normal;font-size:.78rem}
+.sel{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px}
+.chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:.9rem;color:var(--ink)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.modal{position:fixed;inset:0;background:rgba(20,15,10,.82);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.modal .in{background:var(--card);border-radius:14px;max-width:560px;width:100%;max-height:92vh;overflow:auto;padding:12px}
+.modal img{width:100%;border-radius:8px;display:block}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ============================================================
+   DATA – tady se dají upravit názvy, aliasy a období.
+   aliases = další přijatelné odpovědi v režimu „Napiš název“
+   (u víceslovných aliasů musí sedět všechna slova, překlepy se tolerují)
+   ============================================================ */
+const PERIODS = [
+  {id:'paleolit', name:'Paleolit'},
+  {id:'neolit',   name:'Neolit'},
+  {id:'egypt',    name:'Egypt'},
+  {id:'mezopotamie', name:'Mezopotámie'},
+  {id:'krete',    name:'Kréta (minojská kultura)'},
+  {id:'mykeny',   name:'Mykény (mykénská kultura)'},
+  {id:'recko',    name:'Antické Řecko'}
+];
+
+const WORKS = [
+  {f:'01.jpg', name:'Venuše z Willendorfu / Dolních Věstonic', p:'paleolit',
+   aliases:['venuše','venuše z willendorfu','willendorfská venuše','venuše z dolních věstonic','věstonická venuše','dolnověstonická venuše','venuše z věstonic','soška venuše','paleolitická venuše'],
+   info:'Paleolitické ženské sošky – symbol plodnosti.'},
+  {f:'02.jpg', name:'Menhir', p:'neolit',
+   aliases:['menhir','menhir klobuky','zakletý pastýř','kamenný pastýř','menhir kamenný pastýř'],
+   info:'Jeden svisle postavený kámen – megalitická stavba.'},
+  {f:'03.jpg', name:'Kamenné řady v Carnacu', p:'neolit',
+   aliases:['carnac','kamenné řady carnac','alinement','aleje menhirů','menhirové aleje','kamenná řada carnac','řady menhirů'],
+   info:'Řady menhirů v Bretani (Francie).'},
+  {f:'04.jpg', name:'Kamenné řady (Kounov)', p:'neolit',
+   aliases:['kounov','kounovské řady','kounovské kamenné řady','kamenná řada kounov','kamenné řady kounov'],
+   info:'Řada kamenů v krajině – megalitická památka (Kounov u Slaného).'},
+  {f:'05.jpg', name:'Dolmen', p:'neolit',
+   aliases:['dolmen','kamenný stůl','megalitický hrob','dolmen hrob'],
+   info:'Kamenný „stůl“ – nosné kameny překryté deskou, hrobka.'},
+  {f:'06.jpg', name:'Stonehenge', p:'neolit',
+   aliases:['stonehenge','kromlech','cromlech','kamenný kruh','kruh stonehenge','kromlech stonehenge'],
+   info:'Kromlech – kruh z kamenů s překlady, jižní Anglie.'},
+  {f:'07.jpg', name:'Džoserova pyramida', p:'egypt',
+   aliases:['džoserova pyramida','stupňovitá pyramida','pyramida','džoser','sakkára','pyramida v sakkáře','džoserova stupňovitá pyramida'],
+   info:'Stupňovitá pyramida v Sakkáře, Stará říše, architekt Imhotep.'},
+  {f:'08.jpg', name:'Abú Simbel', p:'egypt',
+   aliases:['abú simbel','abu simbel','chrám v abú simbelu','chrám ramesse ii','skalní chrám','ramessův chrám','ramesse ii','chrám abu simbel'],
+   info:'Skalní chrámy Ramesse II., Nová říše.'},
+  {f:'09.jpg', name:'Busta Nefertiti', p:'egypt',
+   aliases:['nefertiti','busta nefertiti','nefertitina busta','nofretete','nefertete','královna nefertiti','busta nofretete'],
+   info:'Amarnské období, Nová říše.'},
+  {f:'10.jpg', name:'Zlatá maska Tutanchamona', p:'egypt',
+   aliases:['tutanchamon','tutanchamonova maska','maska tutanchamona','zlatá maska','tutanchamonova zlatá maska','maska faraona'],
+   info:'Pohřební maska faraona, Nová říše.'},
+  {f:'11.jpg', name:'Ištařina brána', p:'mezopotamie',
+   aliases:['ištařina brána','ištar brána','brána ištar','babylonská brána','brána z babylonu','ištařina'],
+   info:'Modrá glazovaná cihlová brána v Babylonu (Novobabylonská říše).'},
+  {f:'12.jpg', name:'Chammurapiho zákoník', p:'mezopotamie',
+   aliases:['chammurapiho zákoník','hammurabiho zákoník','chammurapi','hammurabi','chamurapi','hamurabi','chammurapiho stéla','stéla s chammurapiho zákoníkem','zákoník','chammurabi','chammurabiho zákoník'],
+   info:'Černá diorit. stéla se zákony krále Chammurapiho, Babylon.'},
+  {f:'13.jpg', name:'Gudea', p:'mezopotamie',
+   aliases:['gudea','gudeova socha','socha gudey','gudea z lagaše','sumerská socha gudea','kněžský král gudea'],
+   info:'Sumerská socha vladaře (patesi) z Lagaše.'},
+  {f:'14.jpg', name:'Standarta z Uru', p:'mezopotamie',
+   aliases:['standarta z uru','standarta','ur','královská standarta z uru','štandarta z uru','štandarta'],
+   info:'Sumerská mozaika (lapis lazuli, mušle) – „válka“ a „mír“.'},
+  {f:'15.jpg', name:'Palác v Knóssu', p:'krete',
+   aliases:['palác v knóssu','knóssos','knossos','knóssos palác','knossos palác','palác knóssos','kréta palác','minojský palác','labyrint','palác v knosu','knosský palác','knossský palác'],
+   info:'Minojský palác na Krétě, sloupy zužující se dolů.'},
+  {f:'16.jpg', name:'Bohyně s hady (Kréta)', p:'krete',
+   aliases:['bohyně s hady','hadí bohyně','bohyně s hady kréta','minojská bohyně','soška bohyně s hady','kněžka s hady','bohyně hadů','soška bohyně'],
+   info:'Minojské sošky bohyně (nebo kněžky) s hady.'},
+  {f:'17.jpg', name:'Mykénská dáma (freska)', p:'mykeny',
+   aliases:['mykénská dáma','dáma z mykén','freska z mykén','mykénská freska','mykénská bohyně','hlava ženy','dáma','mykénská žena'],
+   info:'Fragment nástěnné malby (fresky) z Mykén.'},
+  {f:'18.jpg', name:'Lví brána v Mykénách', p:'mykeny',
+   aliases:['lví brána','lví brána mykény','brána v mykénách','lví brána v mykénách','mykénská brána','brána lvů'],
+   info:'Vstup do mykénské citadely, nadpraží s reliéfem dvou lvic, kyklopské zdivo.'},
+  {f:'19.jpg', name:'Atreova hrobka', p:'mykeny',
+   aliases:['atreova hrobka','atreův poklad','agamemnonova hrobka','hrobka atrea','tholos','kupolová hrobka','pokladnice atrea','atreova pokladnice','hrobka mykény','tholos hrobka'],
+   info:'Mykénská kupolová hrobka (tholos) s trojúhelníkovým otvorem nad vchodem.'},
+  {f:'20.jpg', name:'Parthenon', p:'recko',
+   aliases:['parthenon','partenon','chrám athény','chrám na akropoli','athéna parthenos','parthenon akropole','akropolis','akropole'],
+   info:'Dórský chrám na athénské Akropoli (5. st. př. n. l.), Iktínos a Kallikratés.'}
+];
+const perName = id => PERIODS.find(p=>p.id===id).name;
+
+/* ---------- pomocné funkce ---------- */
+const $app = document.getElementById('app');
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const esc = s => s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+const STOP = new Set(['z','ze','v','ve','u','na','do','a','s','se','od','o','po','tzv','the','ii','kultura','kultury']);
+const toks = s => norm(s).split(' ').filter(t=>t && !STOP.has(t));
+function lev(a,b){
+  const m=a.length,n=b.length; if(!m) return n; if(!n) return m;
+  let prev=Array.from({length:n+1},(_,i)=>i);
+  for(let i=1;i<=m;i++){ const cur=[i];
+    for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    prev=cur; }
+  return prev[n];
+}
+function tokMatch(a,b){ // a = klíčové slovo aliasu, b = slovo z odpovědi
+  if(a===b) return true;
+  const L=Math.max(a.length,b.length);
+  if(Math.min(a.length,b.length)>=5 && (a.startsWith(b)||b.startsWith(a))) return true; // koncovky
+  const tol = L<=3?0 : L<=5?1 : L<=9?2 : 3;
+  return lev(a,b)<=tol;
+}
+// vrací 0..1 – jak dobře odpověď pokrývá nejlepší alias díla
+function score(answer,work){
+  const at = toks(answer); if(!at.length) return 0;
+  let best=0;
+  for(const al of [work.name,...work.aliases]){
+    const tt = toks(al); if(!tt.length) continue;
+    let hit=0; for(const t of tt) if(at.some(x=>tokMatch(t,x))) hit++;
+    const cov = hit/tt.length;
+    // aliasy z 1 slova nesmí vyhrát náhodou na velmi krátkých odpovědích
+    if(cov===1) best=Math.max(best, 1);
+    else best=Math.max(best, cov*0.9);
+  }
+  return best;
+}
+function judge(answer,work){
+  const s = score(answer,work);
+  if(s>=1) return {r:'ok'};
+  // patří odpověď spíš k jinému dílu?
+  let other=null, os=0;
+  for(const w of WORKS){ if(w===work) continue; const x=score(answer,w); if(x>os){os=x;other=w;} }
+  if(os>=1) return {r:'bad', other};
+  if(s>=0.5 && toks(answer).length) return {r:'part'};
+  return {r:'bad'};
+}
+
+/* ---------- stav ---------- */
+let S=null;
+function startSession(mode, pool){
+  S={mode, queue:shuffle(pool.map(w=>WORKS.indexOf(w))), total:pool.length, done:0, right:0, wrong:[], cur:null, answered:false, pool};
+  next();
+}
+function next(){
+  if(!S.queue.length){ return end(); }
+  S.cur = S.queue.shift(); S.answered=false;
+  render();
+}
+function record(ok){
+  S.answered=true; S.done++;
+  if(ok) S.right++; else if(!S.wrong.includes(S.cur)) S.wrong.push(S.cur);
+  const el=document.getElementById('sc'); if(el) el.textContent=`${S.right} / ${S.done}`;
+  const b=document.getElementById('pb'); if(b) b.style.width=(S.done/S.total*100)+'%';
+  setTimeout(()=>{const a=document.getElementById('after'); if(a) a.scrollIntoView({behavior:'smooth',block:'nearest'});},60);
+}
+const MODE_NAMES={choice:'Výběr z 4 možností',write:'Napiš název',period:'Přiřaď období'};
+
+/* ---------- obrazovky ---------- */
+function home(){
+  S=null;
+  $app.innerHTML=`
+  <h1>🏛️ Poznávačka</h1>
+  <p class="sub">Výtvarná výchova – opakování uměleckých děl (${WORKS.length} děl)</p>
+  <div class="menu">
+    <button class="mode" onclick="setup('choice')"><b>1 · Výběr z 4 možností</b><span>Uvidíš dílo a vybereš správný název ze čtyř.</span></button>
+    <button class="mode" onclick="setup('write')"><b>2 · Napiš název</b><span>Název napíšeš sám. Překlepy a jiné tvary názvu se tolerují.</span></button>
+    <button class="mode" onclick="setup('period')"><b>3 · Přiřaď období</b><span>Název je dán, ty vybereš období / kulturu (neolit, Egypt, Mezopotámie…).</span></button>
+    <button class="mode" onclick="gallery()"><b>📖 Přehled děl</b><span>Všechna díla s názvy a obdobími k učení.</span></button>
+  </div>`;
+}
+let SEL = new Set(PERIODS.map(p=>p.id));
+function setup(mode){
+  $app.innerHTML=`
+  <div class="top"><button class="back" onclick="home()">← Zpět</button></div>
+  <h1>${MODE_NAMES[mode]}</h1>
+  <p class="sub">Z jakých období chceš být zkoušen?</p>
+  <div class="sel" id="chips"></div>
+  <div class="actions"><button class="btn" id="go">Začít</button></div>`;
+  const draw=()=>{ document.getElementById('chips').innerHTML=PERIODS.map(p=>`<button class="chip ${SEL.has(p.id)?'on':''}" data-id="${p.id}">${p.name}</button>`).join('')
+     +`<button class="chip" data-all="1">vše / nic</button>`;
+     document.getElementById('go').disabled = SEL.size===0; };
+  draw();
+  document.getElementById('chips').onclick=e=>{ const c=e.target.closest('.chip'); if(!c) return;
+    if(c.dataset.all){ SEL = SEL.size===PERIODS.length? new Set() : new Set(PERIODS.map(p=>p.id)); }
+    else { const id=c.dataset.id; SEL.has(id)?SEL.delete(id):SEL.add(id); }
+    draw(); };
+  document.getElementById('go').onclick=()=>{
+    const pool=WORKS.filter(w=>SEL.has(w.p));
+    if(mode==='choice' && pool.length<4){ alert('Pro tento režim vyber aspoň 4 díla (víc období).'); return; }
+    startSession(mode,pool);
+  };
+}
+function header(){
+  return `<div class="top"><button class="back" onclick="if(confirm('Ukončit procvičování?'))home()">← Domů</button>
+  <div class="score">${MODE_NAMES[S.mode]} · skóre <span id="sc">${S.right} / ${S.done}</span></div></div>
+  <div class="bar"><i id="pb" style="width:${S.done/S.total*100}%"></i></div>`;
+}
+function imgBox(w){ return `<div class="imgbox"><img src="img/${w.f}" alt="Dílo k určení"></div>`; }
+function nextBtn(){ return `<div class="actions"><button class="btn" id="nx" autofocus>${S.queue.length?'Další →':'Dokončit'}</button></div>`; }
+
+function render(){
+  const w=WORKS[S.cur];
+  if(S.mode==='choice') renderChoice(w);
+  else if(S.mode==='write') renderWrite(w);
+  else renderPeriod(w);
+}
+function renderChoice(w){
+  const pool = S.pool.length>=4 ? S.pool : WORKS;
+  const others = shuffle(WORKS.filter(x=>x!==w && x.name!==w.name));
+  // preferuj zmatečné možnosti ze stejného období, ale ne jen ty
+  const same = others.filter(x=>x.p===w.p), diff = others.filter(x=>x.p!==w.p);
+  const picks = shuffle([...same.slice(0,2), ...diff]).slice(0,3);
+  const opts = shuffle([w,...picks]);
+  $app.innerHTML = header()+imgBox(w)+`<p class="q">Co je na obrázku?</p><div class="opts" id="opts">${
+    opts.map((o,i)=>`<button class="opt" data-i="${WORKS.indexOf(o)}">${esc(o.name)}</button>`).join('')}</div><div id="after"></div>`;
+  document.getElementById('opts').onclick=e=>{ const b=e.target.closest('.opt'); if(!b||S.answered) return;
+    const idx=+b.dataset.i, ok = idx===S.cur; record(ok);
+    document.querySelectorAll('.opt').forEach(x=>{ x.disabled=true; if(+x.dataset.i===S.cur) x.classList.add('ok'); });
+    if(!ok) b.classList.add('bad');
+    document.getElementById('after').innerHTML = `<div class="fb ${ok?'ok':'bad'}"><b>${ok?'Správně!':'Špatně'} – ${esc(w.name)}</b><small>${esc(perName(w.p))}. ${esc(w.info)}</small></div>`+nextBtn();
+    document.getElementById('nx').onclick=next; };
+}
+function renderWrite(w){
+  $app.innerHTML = header()+imgBox(w)+`<p class="q">Napiš název díla:</p>
+  <form class="row" id="f" autocomplete="off"><input type="text" id="ans" placeholder="např. Parthenon" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="btn" type="submit">Zkontrolovat</button></form>
+  <div class="actions"><button class="btn gray" id="dk">Nevím</button></div><div id="after"></div>`;
+  const inp=document.getElementById('ans'); inp.focus();
+  const finish=(kind,ans)=>{
+    if(S.answered) return;
+    let cls,msg,sub='';
+    if(kind==='ok'){ record(true); cls='ok'; msg='Správně!'; }
+    else if(kind==='skip'){ record(false); cls='bad'; msg='Správně je:'; }
+    else if(kind==='part'){ record(false); cls='warn'; msg='Skoro – chybí upřesnění. Správně je:'; }
+    else { record(false); cls='bad'; msg='Špatně. Správně je:'; if(kind.other) sub=`Tvoje odpověď sedí spíš k dílu „${esc(kind.other.name)}“. `; }
+    const override = cls!=='ok' ? `<button class="btn alt" id="ov">Měl jsem to správně (počítat)</button>`:'';
+    document.getElementById('after').innerHTML=`<div class="fb ${cls}"><b>${msg} ${esc(w.name)}</b><small>${sub}${esc(perName(w.p))}. ${esc(w.info)}</small></div>
+      <div class="actions">${override}<button class="btn" id="nx">${S.queue.length?'Další →':'Dokončit'}</button></div>`;
+    document.getElementById('dk').disabled=true; inp.disabled=true;
+    const ov=document.getElementById('ov');
+    if(ov) ov.onclick=()=>{ S.right++; S.wrong=S.wrong.filter(x=>x!==S.cur); document.getElementById('sc').textContent=`${S.right} / ${S.done}`; ov.remove(); };
+    document.getElementById('nx').onclick=next; document.getElementById('nx').focus();
+  };
+  document.getElementById('f').onsubmit=e=>{ e.preventDefault(); const v=inp.value.trim(); if(!v) return;
+    const j=judge(v,w); finish(j.r==='ok'?'ok':j.r==='part'?'part':{other:j.other}, v); };
+  document.getElementById('dk').onclick=()=>finish('skip');
+}
+function renderPeriod(w){
+  const used = PERIODS.filter(p=>S.pool.some(x=>x.p===p.id) || true);
+  $app.innerHTML = header()+imgBox(w)+`<div class="given">${esc(w.name)}</div><p class="q">Do jakého období / kultury dílo patří?</p>
+  <div class="grid2" id="opts">${PERIODS.map(p=>`<button class="opt" data-id="${p.id}">${p.name}</button>`).join('')}</div><div id="after"></div>`;
+  document.getElementById('opts').onclick=e=>{ const b=e.target.closest('.opt'); if(!b||S.answered) return;
+    const ok=b.dataset.id===w.p; record(ok);
+    document.querySelectorAll('.opt').forEach(x=>{ x.disabled=true; if(x.dataset.id===w.p) x.classList.add('ok'); });
+    if(!ok) b.classList.add('bad');
+    document.getElementById('after').innerHTML=`<div class="fb ${ok?'ok':'bad'}"><b>${ok?'Správně!':'Špatně'} – ${esc(perName(w.p))}</b><small>${esc(w.info)}</small></div>`+nextBtn();
+    document.getElementById('nx').onclick=next; };
+}
+function end(){
+  const pct = S.total? Math.round(S.right/S.total*100):0;
+  const wrongList = S.wrong.map(i=>`<li>${esc(WORKS[i].name)} <em style="color:var(--muted)">(${esc(perName(WORKS[i].p))})</em></li>`).join('');
+  $app.innerHTML=`<div class="top"><button class="back" onclick="home()">← Domů</button></div>
+  <div class="end"><div class="big">${pct} %</div><p>${S.right} z ${S.total} správně · ${MODE_NAMES[S.mode]}</p>
+  ${S.wrong.length?`<p style="text-align:left"><b>Chyby u:</b></p><ul style="text-align:left">${wrongList}</ul>`:'<p>Bez chyby! 🎉</p>'}
+  <div class="actions" style="justify-content:center">
+   ${S.wrong.length?'<button class="btn" id="rw">Procvičit chyby</button>':''}
+   <button class="btn alt" id="again">Znovu</button><button class="btn gray" onclick="home()">Menu</button></div></div>`;
+  const mode=S.mode, pool=S.pool, wr=S.wrong.slice();
+  document.getElementById('again').onclick=()=>startSession(mode,pool);
+  const rw=document.getElementById('rw'); if(rw) rw.onclick=()=>{
+    const wp=wr.map(i=>WORKS[i]);
+    if(mode==='choice' && wp.length<4){ // režim výběru potřebuje jen pool pro zpracování, distraktory se berou ze všech děl
+      S={mode, queue:shuffle(wp.map(w=>WORKS.indexOf(w))), total:wp.length, done:0, right:0, wrong:[], cur:null, answered:false, pool:wp}; next();
+    } else startSession(mode,wp); };
+}
+function gallery(){
+  $app.innerHTML=`<div class="top"><button class="back" onclick="home()">← Zpět</button></div><h1>📖 Přehled děl</h1>
+  <p class="sub">Klikni na obrázek pro zvětšení.</p>
+  ${PERIODS.map(p=>`<h2 style="margin:18px 0 8px">${p.name}</h2><div class="gal">${
+    WORKS.filter(w=>w.p===p.id).map(w=>`<button class="gi" data-i="${WORKS.indexOf(w)}"><img src="img/${w.f}" loading="lazy" alt=""><div>${esc(w.name)}</div></button>`).join('')}</div>`).join('')}`;
+  document.querySelector('.wrap').onclick=e=>{ const g=e.target.closest('.gi'); if(!g) return; const w=WORKS[+g.dataset.i];
+    const m=document.createElement('div'); m.className='modal';
+    m.innerHTML=`<div class="in"><img src="img/${w.f}" alt=""><h2 style="margin:10px 0 2px">${esc(w.name)}</h2><div style="color:var(--muted)">${esc(perName(w.p))}. ${esc(w.info)}</div></div>`;
+    m.onclick=()=>m.remove(); document.body.appendChild(m); };
+}
+home();
+</script>
+</body>
+</html>
